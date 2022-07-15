@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  password String
+  address  String?
+  role     String?
+  cart     Cart?
+  Order    Order[]
+}
+
+// Product will also keep track of what cartitems are they being assigned to
+model Product {
+  id        Int         @id @default(autoincrement())
+  name      String
+  price     Float
+  catagory  String
+  url       String?
+  Cartitem  Cartitem[]
+  Orderitem Orderitem[]
+  sellerId Int
+}
+
+// Every cart item can only be associated with a single product
+model Cartitem {
+  id        Int     @id @default(autoincrement())
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  cartId    Int
+  item      Int
+  price     Float
+  url       String?
+  productName String
+}
+
+// Every cart will have an array of cart items and every cart will also be associated with a single user
+model Cart {
+  id       Int        @id @default(autoincrement())
+  cartItem Cartitem[]
+  user     User       @relation(fields: [userId], references: [id])
+  userId   Int        @unique
+}
+
+model Orderitem {
+  id        Int     @id @default(autoincrement())
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  item      Int
+  price     Float
+  Order     Order  @relation(fields: [orderId], references: [id])
+  orderId   Int
+  url String?
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  Orderitem Orderitem[]
+  user      User        @relation(fields: [userId], references: [id])
+  userId    Int
+  totalAmount Float @default(0.0)
+
+}
